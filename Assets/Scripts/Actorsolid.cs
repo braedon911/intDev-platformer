@@ -11,44 +11,32 @@ namespace ActorSolid
     }
     public class Actorsolid : MonoBehaviour
     {
-        CollisionBox box;
-        protected int x = 0;
-        protected int y = 0;
-        protected Vector2 origin = new Vector2Int();
+        protected CollisionBox box;
+        public int X { get { return box.lockedPosition.x; } set { box.lockedPosition.x = value; } }
+        public int Y { get { return box.lockedPosition.y; } set { box.lockedPosition.y = value; } }
 
-        protected void StartPosition()
-        {
-            x = Mathf.RoundToInt(transform.position.x);
-            y = Mathf.RoundToInt(transform.position.y);
-            origin = new Vector2Int(x, y);
-        }
-        protected Vector2 FixPosition()
-        {
-            Vector2 fixedVec = new Vector2(x, y);
-            transform.position = fixedVec;
-            return fixedVec;
-        }
+        public virtual bool IsSolid() { return false; }
     }
     static class BoxSystem
     {
         public static List<CollisionBox> boxList = new List<CollisionBox>();
-
     }
+    [System.Serializable]
     public class CollisionBox : MonoBehaviour
     {
         [SerializeField]
         private Vector2Int dimensions;
-        private Vector2Int lockedPosition;
+        public Vector2Int lockedPosition;
         private Vector2Int topLeft, bottomRight;
 
             public Vector2Int Dimensions { get { return dimensions; } set { } }
-            public Vector2Int LockedPosition { get { return lockedPosition; } set { } }
             public Vector2Int TopLeft { get { return topLeft + lockedPosition; } set { } }
             public Vector2Int TopRight { get { return dimensions + lockedPosition; } set { } }
             public Vector2Int BottomLeft { get { return lockedPosition; } set { } }
             public Vector2Int BottomRight { get { return bottomRight + lockedPosition; } set { } }
 
-        bool PointInBox(int x_check, int y_check)
+        public SpriteRenderer spriteRenderer;
+        public bool PointInBox(int x_check, int y_check)
         {
             if (x_check < lockedPosition.x + dimensions.x && x_check > lockedPosition.x && y_check < lockedPosition.x + dimensions.y && y_check > lockedPosition.y)
             {
@@ -56,7 +44,7 @@ namespace ActorSolid
             }
             else return false;
         }
-        bool PointInBox(Vector2Int checkPosition)
+        public bool PointInBox(Vector2Int checkPosition)
         {
             int x_check = checkPosition.x;
             int y_check = checkPosition.y;
@@ -66,7 +54,19 @@ namespace ActorSolid
             }
             else return false;
         }
-        bool PlaceMeeting(int x_check, int y_check)
+        public bool PlaceMeeting(int x_check, int y_check, Func<CollisionBox, bool> qualifier)
+        {
+            Vector2Int checkPosition = new Vector2Int(x_check, y_check);
+            bool check = false;
+            foreach (CollisionBox box in BoxSystem.boxList)
+            {
+                check = (PointInBox(box.BottomLeft + checkPosition) || PointInBox(box.TopLeft + checkPosition) || PointInBox(box.TopRight + checkPosition) || PointInBox(box.BottomRight + checkPosition));
+                if (check && qualifier(box)) break;
+                else check = false;
+            }
+            return check;
+        }
+        public bool PlaceMeeting(int x_check, int y_check)
         {
             Vector2Int checkPosition = new Vector2Int(x_check, y_check);
             bool check = false;
@@ -77,50 +77,71 @@ namespace ActorSolid
             }
             return check;
         }
+        public CollisionBox InstancePlace(int x_check, int y_check)
+        {
+            Vector2Int checkPosition = new Vector2Int(x_check, y_check);
+            bool check = false;
+            foreach (CollisionBox box in BoxSystem.boxList)
+            {
+                check = (PointInBox(box.BottomLeft + checkPosition) || PointInBox(box.TopLeft + checkPosition) || PointInBox(box.TopRight + checkPosition) || PointInBox(box.BottomRight + checkPosition));
+                if (check) return box;
+            }
+            return null;
+        }
+        private void FixedUpdate()
+        {
+            lockedPosition.x = Mathf.RoundToInt(transform.position.x);
+            lockedPosition.y = Mathf.RoundToInt(transform.position.y);
+        }
         void Start()
         {
             BoxSystem.boxList.Add(this);
             topLeft = new Vector2Int(0, dimensions.y);
             bottomRight = new Vector2Int(dimensions.x, 0);
+
+            lockedPosition.x = Mathf.RoundToInt(transform.position.x);
+            lockedPosition.y = Mathf.RoundToInt(transform.position.y);
+            transform.position = new Vector3(lockedPosition.x, lockedPosition.y);
+
+            if (TryGetComponent(out SpriteRenderer renderer))
+            {
+                spriteRenderer = renderer;
+                Bounds bounds = renderer.bounds;
+                lockedPosition = new Vector2Int(Mathf.RoundToInt(bounds.center.x - bounds.extents.x), Mathf.RoundToInt(bounds.center.y - bounds.extents.y));
+                dimensions = new Vector2Int(Mathf.RoundToInt(bounds.size.x), Mathf.RoundToInt(bounds.size.y));
+            }
+            else
+            {
+                lockedPosition = new Vector2Int(Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.y));
+                dimensions = new Vector2Int(Mathf.RoundToInt(transform.localScale.x), Mathf.RoundToInt(transform.localScale.y));
+            }
         }
     }
 
-    [RequireComponent(typeof(CollisionBox))]
+    [RequireComponent(typeof(CollisionBox)), System.Serializable]
     public class Actor : Actorsolid
     {
-        Vector2 velocity;
-        float drag = 0.01f;
-
         public delegate void CollisionAction();
         CollisionAction defaultAction;
         CollisionAction squishAction;
 
+        public override bool IsSolid() { return false; }
         void Start()
         {
             squishAction = Squish;
-
-            StartPosition();
-            box = GetComponent<Collider2D>();
+            box = GetComponent<CollisionBox>();
             Actortracker.actorList.Add(this);
         }
 
-        void FixedUpdate()
-        {
-            FixPosition();
-        }
-
-        bool CollideCheck(int x_check, int y_check, Solid solid)
-        {
-
-        }
         bool CollideCheck(int x_check, int y_check)
         {
-
+            Func<CollisionBox, bool> qualifier = (box) => { return box.gameObject.GetComponent<Solid>() != null; };
+            return box.PlaceMeeting(x_check, y_check, qualifier);
         }
 
         void Squish()
         {
-
+            //die or something
         }
         public void MoveX(float distance, CollisionAction action)
         {
@@ -130,9 +151,15 @@ namespace ActorSolid
 
             while (move != 0)
             {
-                if (CollideCheck(x + direction, y))
+                if (!CollideCheck(X + direction, Y))
                 {
-
+                    X += direction;
+                    move-=direction;
+                }
+                else
+                {
+                    action();
+                    break;
                 }
             }
         }
@@ -140,26 +167,32 @@ namespace ActorSolid
         {
             float remainder = distance;
             int move = Mathf.RoundToInt(distance);
-            int direciton = Math.Sign(move);
+            int direction = Math.Sign(move);
 
-
+            while (move != 0)
+            {
+                if (!CollideCheck(X, Y+direction))
+                {
+                    Y += direction;
+                    move -= direction;
+                }
+                else
+                {
+                    action();
+                    break;
+                }
+            }
         }
     }
-    [RequireComponent(typeof(CollisionBox))]
+    [RequireComponent(typeof(CollisionBox)), System.Serializable]
     public class Solid : Actorsolid
     {
-        private bool collidable = false;
-        public CollisionBox box;
+        private bool collidable = true;
+        public override bool IsSolid() { return true; }
 
         void Start()
         {
             box = GetComponent<CollisionBox>();
-        }
-
-        
-        void Update()
-        {
-
         }
         public void Move(float x_distance, float y_distance)
         {
