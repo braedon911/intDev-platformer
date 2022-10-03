@@ -8,12 +8,14 @@ public class Actor : Actorsolid
     Vector2 velocity;
     float drag = 0.01f;
 
-    public delegate void defaultCollisionAction();
-    public delegate void squishCollissionAction();
-
+    public delegate void CollisionAction();
+    CollisionAction defaultAction;
+    CollisionAction squishAction;
     
     void Start()
     {
+        squishAction = Squish;
+        
         StartPosition();
         box = GetComponent<Collider2D>();
         Actortracker.actorList.Add(this);
@@ -29,6 +31,10 @@ public class Actor : Actorsolid
         Bounds place = new Bounds(new Vector3(x_check, y_check), box.bounds.size);
         return place.Intersects(solid.box.bounds);
     }
+    bool CollideCheck(int x_check, int y_check)
+    {
+
+    }
     void OnCollisionEnter2D(Collision2D collision)
     {
         
@@ -37,12 +43,23 @@ public class Actor : Actorsolid
     {
 
     }
-    public void MoveX(float distance, Action callback)
+    public void MoveX(float distance, CollisionAction action)
     {
+        float remainder = distance;
+        int move = Mathf.RoundToInt(distance);
+        int direction = Math.Sign(move);
 
+        while (move != 0)
+        {
+            if(CollideCheck(x+direction, y))
+        }
     }
-    public void MoveY()
+    public void MoveY(float distance, CollisionAction action)
     {
+        float remainder = distance;
+        int move = Mathf.RoundToInt(distance);
+        int direciton = Math.Sign(move);
+
 
     }
 }

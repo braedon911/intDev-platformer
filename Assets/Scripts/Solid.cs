@@ -21,6 +21,5 @@ public class Solid : Actorsolid
     public void Move(float x_distance, float y_distance)
     {
 
-        
     }
 }

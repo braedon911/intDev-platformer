@@ -25,5 +25,6 @@ public class Actorsolid : MonoBehaviour
 }
 public static class Actortracker
 {
+    Physics.autoSimulation = false;
     public static List<Actor> actorList = new List<Actor>();
 }
