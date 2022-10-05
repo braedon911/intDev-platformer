@@ -20,7 +20,11 @@ public class Actor : Actorsolid
 
     bool CollideCheck(int x_check, int y_check)
     {
-        Func<CollisionBox, bool> qualifier = (box) => { return box.gameObject.GetComponent<Solid>() != null; };
+        Func<CollisionBox, bool> qualifier = (box) => 
+        {
+            bool isSolid = box.GetComponent("Solid") != null;
+            return isSolid;
+        };
         return box.PlaceMeeting(x_check, y_check, qualifier);
     }
 
@@ -33,43 +37,56 @@ public class Actor : Actorsolid
     {
         //die or something
     }
+    float xRemainder = 0f;
+    float yRemainder = 0f;
     public void MoveX(float distance, CollisionAction action)
     {
-        float remainder = distance;
-        int move = Mathf.RoundToInt(distance);
-        int direction = Math.Sign(move);
+        xRemainder += distance;
+        int move = Mathf.RoundToInt(xRemainder);
 
-        while (move != 0)
+        if (move != 0)
         {
-            if (!CollideCheck(X + direction, Y))
+            xRemainder -= move;
+            int direction = Math.Sign(move);
+
+            while (move != 0)
             {
-                X += direction;
-                move -= direction;
-            }
-            else
-            {
-                action();
-                break;
+
+                if (!CollideCheck(X + direction, Y))
+                {
+                    X += direction;
+                    move -= direction;
+                }
+                else
+                {
+                    action();
+                    break;
+                }
             }
         }
     }
     public void MoveY(float distance, CollisionAction action)
     {
-        float remainder = distance;
-        int move = Mathf.RoundToInt(distance);
-        int direction = Math.Sign(move);
+        yRemainder += distance;
+        int move = Mathf.RoundToInt(yRemainder);
 
-        while (move != 0)
+        if (move != 0)
         {
-            if (!CollideCheck(X, Y + direction))
+            yRemainder -= move;
+            int direction = Math.Sign(move);
+
+            while (move != 0)
             {
-                Y += direction;
-                move -= direction;
-            }
-            else
-            {
-                action();
-                break;
+                if (!CollideCheck(X, Y + direction))
+                {
+                    Y += direction;
+                    move -= direction;
+                }
+                else
+                {
+                    action();
+                    break;
+                }
             }
         }
     }

@@ -219,6 +219,7 @@ GameObject:
   - component: {fileID: 1312617968}
   - component: {fileID: 1312617967}
   - component: {fileID: 1312617966}
+  - component: {fileID: 1312617970}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -238,6 +239,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a057e281509560448ac74d7fb0d43f87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  box: {fileID: 1312617967}
 --- !u!114 &1312617967
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -252,6 +254,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dimensions: {x: 0, y: 0}
   lockedPosition: {x: 0, y: 0}
+  lockedScale: {x: 0, y: 0, z: 0}
   spriteRenderer: {fileID: 1312617968}
 --- !u!212 &1312617968
 SpriteRenderer:
@@ -313,13 +316,27 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1312617965}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 17.6, y: 59, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1312617970
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1312617965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6f462e8f70ef4046b378f1b0434fec3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  actor: {fileID: 1312617966}
+  box: {fileID: 1312617967}
 --- !u!1 &1745937975
 GameObject:
   m_ObjectHideFlags: 0
@@ -351,6 +368,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a04ea8adeb4d264daed878ca9a8553f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  box: {fileID: 1745937977}
 --- !u!114 &1745937977
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -363,8 +381,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43c584defff42a14c827a8d10fc0f0ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dimensions: {x: 80, y: 0}
-  lockedPosition: {x: 0, y: -16}
+  dimensions: {x: 0, y: 0}
+  lockedPosition: {x: 0, y: 0}
+  lockedScale: {x: 0, y: 0, z: 0}
   spriteRenderer: {fileID: 0}
 --- !u!212 &1745937978
 SpriteRenderer:
@@ -426,8 +445,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1745937975}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -16, z: 0}
-  m_LocalScale: {x: 5, y: 1, z: 1}
+  m_LocalPosition: {x: -45.6, y: -58.1, z: 0}
+  m_LocalScale: {x: 10, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}

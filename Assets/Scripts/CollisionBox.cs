@@ -8,6 +8,7 @@ public class CollisionBox : MonoBehaviour
     [SerializeField]
     private Vector2Int dimensions;
     public Vector2Int lockedPosition;
+    public Vector3Int lockedScale;
     private Vector2Int topLeft, bottomRight;
 
     public Vector2Int Dimensions { get { return dimensions; } set { } }
@@ -25,7 +26,7 @@ public class CollisionBox : MonoBehaviour
     {
         int x_check = checkPosition.x;
         int y_check = checkPosition.y;
-        if (x_check < lockedPosition.x + dimensions.x && x_check > lockedPosition.x && y_check < lockedPosition.x + dimensions.y && y_check > lockedPosition.y)
+        if (x_check < TopRight.x && x_check > BottomLeft.x && y_check < TopRight.y && y_check > BottomLeft.y)
         {
             return true;
         }
@@ -38,10 +39,10 @@ public class CollisionBox : MonoBehaviour
         foreach (CollisionBox box in BoxSystem.boxList)
         {
             if (box != this) {
-                check = qualifier(box) && (PointInBox(box.BottomLeft + checkPosition) || PointInBox(box.TopLeft + checkPosition) || PointInBox(box.TopRight + checkPosition) || PointInBox(box.BottomRight + checkPosition));
-                if (check) break;
-            }
-            
+                check = box.PointInBox(checkPosition) || box.PointInBox(dimensions + checkPosition) || box.PointInBox(new Vector2Int(dimensions.x, 0) + checkPosition) || box.PointInBox(new Vector2Int(0, dimensions.x) + checkPosition);
+
+                if (check && qualifier(box)) break;
+            }            
         }
         return check;
     }
@@ -51,7 +52,7 @@ public class CollisionBox : MonoBehaviour
         bool check = false;
         foreach (CollisionBox box in BoxSystem.boxList)
         {
-            check = (PointInBox(box.BottomLeft + checkPosition) || PointInBox(box.TopLeft + checkPosition) || PointInBox(box.TopRight + checkPosition) || PointInBox(box.BottomRight + checkPosition));
+            check = (box.PointInBox(BottomLeft + checkPosition) || box.PointInBox(TopLeft + checkPosition) || box.PointInBox(TopRight + checkPosition) || box.PointInBox(BottomRight + checkPosition));
             if (check) break;
         }
         return check;
@@ -70,28 +71,32 @@ public class CollisionBox : MonoBehaviour
     private void FixedUpdate()
     {
         transform.position = new Vector3Int(lockedPosition.x, lockedPosition.y);
+        transform.localScale = lockedScale;
+        Debug.DrawLine(new Vector3(lockedPosition.x, lockedPosition.y), new Vector3(TopRight.x, TopRight.y), Color.red);
     }
     void Start()
     {
         BoxSystem.boxList.Add(this);
-        topLeft = new Vector2Int(0, dimensions.y);
-        bottomRight = new Vector2Int(dimensions.x, 0);
-
+        
         lockedPosition.x = Mathf.RoundToInt(transform.position.x);
         lockedPosition.y = Mathf.RoundToInt(transform.position.y);
+        lockedScale = new Vector3Int(Mathf.RoundToInt(transform.localScale.x), Mathf.RoundToInt(transform.localScale.y));
         transform.position = new Vector3(lockedPosition.x, lockedPosition.y);
 
         if (TryGetComponent(out SpriteRenderer renderer))
         {
             spriteRenderer = renderer;
             Bounds bounds = renderer.bounds;
-            lockedPosition = new Vector2Int(Mathf.RoundToInt(bounds.center.x - bounds.extents.x), Mathf.RoundToInt(bounds.center.y - bounds.extents.y));
+            //bounds.size = transform.localScale;
             dimensions = new Vector2Int(Mathf.RoundToInt(bounds.size.x), Mathf.RoundToInt(bounds.size.y));
+            topLeft = new Vector2Int(0, dimensions.y);
+            bottomRight = new Vector2Int(dimensions.x, 0);
         }
         else
         {
-            lockedPosition = new Vector2Int(Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.y));
-            dimensions = new Vector2Int(Mathf.RoundToInt(transform.localScale.x), Mathf.RoundToInt(transform.localScale.y));
+            dimensions = new Vector2Int(lockedScale.x,lockedScale.y);
+            topLeft = new Vector2Int(0, dimensions.y);
+            bottomRight = new Vector2Int(dimensions.x, 0);
         }
     }
 }
