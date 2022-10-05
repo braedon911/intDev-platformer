@@ -7,14 +7,14 @@ using System;
 public class Actor : Actorsolid
 {
     public delegate void CollisionAction();
-    CollisionAction defaultAction;
-    CollisionAction squishAction;
+    public CollisionAction defaultAction = () => { };
+    public CollisionAction squishAction;
 
     public override bool IsSolid() { return false; }
     void Start()
     {
         squishAction = Squish;
-        box = GetComponent<CollisionBox>();
+        box = gameObject.GetComponent<CollisionBox>();
         Actortracker.actorList.Add(this);
     }
 
@@ -22,6 +22,11 @@ public class Actor : Actorsolid
     {
         Func<CollisionBox, bool> qualifier = (box) => { return box.gameObject.GetComponent<Solid>() != null; };
         return box.PlaceMeeting(x_check, y_check, qualifier);
+    }
+
+    public bool IsStanding()
+    {
+        return CollideCheck(X, Y - 1);
     }
 
     void Squish()

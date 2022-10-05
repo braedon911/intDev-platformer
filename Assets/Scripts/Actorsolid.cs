@@ -9,7 +9,7 @@ public static class Actortracker
 }
 public class Actorsolid : MonoBehaviour
 {
-    protected CollisionBox box;
+    public CollisionBox box;
     public int X { get { return box.lockedPosition.x; } set { box.lockedPosition.x = value; } }
     public int Y { get { return box.lockedPosition.y; } set { box.lockedPosition.y = value; } }
 

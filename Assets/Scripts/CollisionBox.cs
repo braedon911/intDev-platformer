@@ -37,9 +37,11 @@ public class CollisionBox : MonoBehaviour
         bool check = false;
         foreach (CollisionBox box in BoxSystem.boxList)
         {
-            check = (PointInBox(box.BottomLeft + checkPosition) || PointInBox(box.TopLeft + checkPosition) || PointInBox(box.TopRight + checkPosition) || PointInBox(box.BottomRight + checkPosition));
-            if (check && qualifier(box)) break;
-            else check = false;
+            if (box != this) {
+                check = qualifier(box) && (PointInBox(box.BottomLeft + checkPosition) || PointInBox(box.TopLeft + checkPosition) || PointInBox(box.TopRight + checkPosition) || PointInBox(box.BottomRight + checkPosition));
+                if (check) break;
+            }
+            
         }
         return check;
     }
@@ -67,8 +69,7 @@ public class CollisionBox : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        lockedPosition.x = Mathf.RoundToInt(transform.position.x);
-        lockedPosition.y = Mathf.RoundToInt(transform.position.y);
+        transform.position = new Vector3Int(lockedPosition.x, lockedPosition.y);
     }
     void Start()
     {
