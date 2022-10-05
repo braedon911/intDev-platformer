@@ -19,11 +19,7 @@ public class CollisionBox : MonoBehaviour
     public SpriteRenderer spriteRenderer;
     public bool PointInBox(int x_check, int y_check)
     {
-        if (x_check < lockedPosition.x + dimensions.x && x_check > lockedPosition.x && y_check < lockedPosition.x + dimensions.y && y_check > lockedPosition.y)
-        {
-            return true;
-        }
-        else return false;
+        return (x_check < lockedPosition.x + dimensions.x && x_check > lockedPosition.x && y_check < lockedPosition.x + dimensions.y && y_check > lockedPosition.y);
     }
     public bool PointInBox(Vector2Int checkPosition)
     {
