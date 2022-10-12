@@ -20,17 +20,13 @@ public class CollisionBox : MonoBehaviour
     public SpriteRenderer spriteRenderer;
     public bool PointInBox(int x_check, int y_check)
     {
-        return (x_check < lockedPosition.x + dimensions.x && x_check > lockedPosition.x && y_check < lockedPosition.x + dimensions.y && y_check > lockedPosition.y);
+        return ((x_check <= TopRight.x && x_check >= BottomLeft.x) && (y_check <= TopRight.y && y_check >= BottomLeft.y));
     }
     public bool PointInBox(Vector2Int checkPosition)
     {
         int x_check = checkPosition.x;
         int y_check = checkPosition.y;
-        if (x_check < TopRight.x && x_check > BottomLeft.x && y_check < TopRight.y && y_check > BottomLeft.y)
-        {
-            return true;
-        }
-        else return false;
+        return PointInBox(x_check, y_check);
     }
     public bool PlaceMeeting(int x_check, int y_check, Func<CollisionBox, bool> qualifier)
     {
@@ -39,7 +35,7 @@ public class CollisionBox : MonoBehaviour
         foreach (CollisionBox box in BoxSystem.boxList)
         {
             if (box != this) {
-                check = box.PointInBox(checkPosition) || box.PointInBox(dimensions + checkPosition) || box.PointInBox(new Vector2Int(dimensions.x, 0) + checkPosition) || box.PointInBox(new Vector2Int(0, dimensions.x) + checkPosition);
+                check = box.PointInBox(checkPosition) || box.PointInBox(dimensions + checkPosition) || box.PointInBox(new Vector2Int(dimensions.x, 0) + checkPosition) || box.PointInBox(new Vector2Int(0, dimensions.y) + checkPosition);
 
                 if (check && qualifier(box)) break;
             }            
@@ -87,8 +83,7 @@ public class CollisionBox : MonoBehaviour
         {
             spriteRenderer = renderer;
             Bounds bounds = renderer.bounds;
-            //bounds.size = transform.localScale;
-            dimensions = new Vector2Int(Mathf.RoundToInt(bounds.size.x), Mathf.RoundToInt(bounds.size.y));
+            dimensions = new Vector2Int(Mathf.RoundToInt(bounds.size.x-1), Mathf.RoundToInt(bounds.size.y-1));
             topLeft = new Vector2Int(0, dimensions.y);
             bottomRight = new Vector2Int(dimensions.x, 0);
         }
