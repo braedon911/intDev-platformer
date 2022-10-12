@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class PlayerController : MonoBehaviour
 {
@@ -18,22 +19,24 @@ public class PlayerController : MonoBehaviour
     private Actor.CollisionAction resetX;
     private Actor.CollisionAction resetY;
 
+    
+
+    public StateMach stateMachine;
     void Start()
     {
+        stateMachine = new StateMach(State_Run, State_Jump);
         resetX = () => { velocity_x = 0; };
         resetY = () => { velocity_y = 0; };
     }
 
     void Update()
     {
-        GetInput();
-        ApplyVelocityAndDrag();
+        stateMachine.Execute();
     }
     
     void GetInput()
     {
-        velocity_x = Mathf.Clamp(-1*max_velocity_x, velocity_x + (Input.GetAxis("Horizontal") * speed), max_velocity_x);
-        if (actor.IsStanding() && Input.GetKeyDown(KeyCode.Space)) velocity_y+=jump;
+        
         
     }
 
@@ -43,4 +46,20 @@ public class PlayerController : MonoBehaviour
         velocity_x = Mathf.Lerp(velocity_x, 0f, drag);
         if (Mathf.Round(velocity_y) != 0f) velocity_y -= gravity; else velocity_y -= gravity / 10f;
     }
+
+    #region //states
+    
+    void State_Run()
+    {
+        velocity_x = Mathf.Clamp(-1 * max_velocity_x, velocity_x + (Input.GetAxis("Horizontal") * speed), max_velocity_x);
+        if (actor.IsStanding() && Input.GetKeyDown(KeyCode.Space)) velocity_y += jump;
+
+        ApplyVelocityAndDrag();
+    }
+    void State_Jump()
+    {
+        GetInput();
+        ApplyVelocityAndDrag();
+    }
+    #endregion
 }
