@@ -5,13 +5,15 @@ using UnityEngine;
 public class InputBuffering : MonoBehaviour
 {
     List<InputBuffer> bufferMap;
+    List<string> verifyList;
 
     void AddAxis(string axisName, float decay = 0f)
     {
-        bufferMap.Add(new InputBuffer(axisName, decay));   
+        if(!verifyList.Contains(axisName)) bufferMap.Add(new InputBuffer(axisName, decay));
     }
     public InputBuffer GetInputBuffer(string axisName)
     {
+        InputBuffer buffer = bufferMap[verifyList.FindIndex((string s) => {return s == axisName; })];
 
     }
     void Start()
@@ -52,6 +54,11 @@ public class InputBuffer
     {
         this.axisName = axisName;
         this.decay = decay;
+    }
+    public InputBuffer(InputBuffer buffer)
+    {
+        //WIP copy constructor
+        buffer.axisName;
     }
 
     public void Reset()
