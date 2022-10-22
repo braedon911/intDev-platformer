@@ -19,8 +19,6 @@ public class PlayerController : MonoBehaviour
     private Actor.CollisionAction resetX;
     private Actor.CollisionAction resetY;
 
-    
-
     public StateMach stateMachine;
     void Start()
     {
@@ -29,15 +27,9 @@ public class PlayerController : MonoBehaviour
         resetY = () => { velocity_y = 0; };
     }
 
-    void Update()
+    void FixedUpdate()
     {
         stateMachine.Execute();
-    }
-    
-    void GetInput()
-    {
-        
-        
     }
 
     void ApplyVelocityAndDrag() {
@@ -51,14 +43,16 @@ public class PlayerController : MonoBehaviour
     
     void State_Run()
     {
-        velocity_x = Mathf.Clamp(-1 * max_velocity_x, velocity_x + (Input.GetAxis("Horizontal") * speed), max_velocity_x);
+        float horizontal = Input.GetAxis("Horizontal");
+        
+
+        velocity_x = Mathf.Clamp(-1 * max_velocity_x, velocity_x + horizontal, max_velocity_x);
         if (actor.IsStanding() && Input.GetKeyDown(KeyCode.Space)) velocity_y += jump;
 
         ApplyVelocityAndDrag();
     }
     void State_Jump()
     {
-        GetInput();
         ApplyVelocityAndDrag();
     }
     #endregion
