@@ -26,15 +26,16 @@ public class InputBuffering : MonoBehaviour
             if (Input.GetAxis(axis.axisName) != 0)
             {
                 axis.time += Time.deltaTime;
-                axis.state = axis.state == "NotPressed" ? "Down" : "Held";
+                axis.state = axis.state == BufferStates.NotPressed ? BufferStates.Down : BufferStates.Held;
             }
             else
             {
-                axis.releasedTime += Time.deltaTime;
-
-                if (axis.time + axis.releasedTime < axis.decay)
+                if (axis.releasedTime < axis.decay)
                 {
-                    axis.state = "Decay";
+                    if (axis.releasedTime == 0f) axis.state = BufferStates.Up;
+                    else axis.state = BufferStates.Decay;
+
+                    axis.releasedTime += Time.deltaTime;
                 }
                 else
                 {
@@ -57,14 +58,22 @@ public class InputBuffer
     {
         time = 0f;
         releasedTime = 0f;
-        state = "NotPressed";
+        state = BufferStates.NotPressed;
     }
 
     public float decay;
     public string axisName;
     public float time = 0f;
     public float releasedTime = 0f;
-    public string state = "NotPressed";
+    public BufferStates state = BufferStates.NotPressed;
 
 
+}
+public enum BufferStates
+{
+    NotPressed,
+    Decay,
+    Down,
+    Up,
+    Held
 }
