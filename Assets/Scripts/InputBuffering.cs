@@ -7,32 +7,40 @@ public class InputBuffering : MonoBehaviour
     List<InputBuffer> bufferMap;
     List<string> verifyList;
 
-    void AddAxis(string axisName, float decay = 0f)
+    public void AddAxis(string axisName, float decay = 0f)
     {
-        if(!verifyList.Contains(axisName)) bufferMap.Add(new InputBuffer(axisName, decay));
+        if (verifyList!=null && !verifyList.Contains(axisName))
+        {
+            verifyList.Add(axisName);
+            bufferMap.Add(new InputBuffer(axisName, decay));
+        }
     }
     public InputBuffer GetInputBuffer(string axisName)
     {
         InputBuffer buffer = bufferMap[verifyList.FindIndex((string s) => {return s == axisName; })];
-
+        return buffer;
     }
-    void Start()
+    void Awake()
     {
-        
+        bufferMap = new List<InputBuffer>();
+        verifyList = new List<string>();
     }
-
     void Update()
     {
         foreach (var axis in bufferMap)
         {
-            if (Input.GetAxis(axis.axisName) != 0)
+            if (Input.GetAxisRaw(axis.axisName) != 0)
             {
+                if (axis.releasedTime > 0f)
+                {
+                    axis.Reset();
+                }
+                axis.state = axis.time == 0f? BufferStates.Down : BufferStates.Held;
                 axis.time += Time.deltaTime;
-                axis.state = axis.state == BufferStates.NotPressed ? BufferStates.Down : BufferStates.Held;
             }
             else
             {
-                if (axis.releasedTime < axis.decay)
+                if (axis.releasedTime < axis.decay && axis.time != 0f)
                 {
                     if (axis.releasedTime == 0f) axis.state = BufferStates.Up;
                     else axis.state = BufferStates.Decay;
@@ -57,8 +65,11 @@ public class InputBuffer
     }
     public InputBuffer(InputBuffer buffer)
     {
-        //WIP copy constructor
-        buffer.axisName;
+        buffer.axisName = axisName;
+        buffer.decay = decay;
+        buffer.time = time;
+        buffer.releasedTime = releasedTime;
+        buffer.state = state;
     }
 
     public void Reset()

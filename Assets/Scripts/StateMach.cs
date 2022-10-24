@@ -25,6 +25,7 @@ public class StateMach
     {
         state = states[index];
         subState = new_substate;
+        stateTimer = -1;
     }
     public void Execute()
     {

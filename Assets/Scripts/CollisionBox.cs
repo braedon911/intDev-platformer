@@ -48,8 +48,11 @@ public class CollisionBox : MonoBehaviour
         bool check = false;
         foreach (CollisionBox box in BoxSystem.boxList)
         {
-            check = (box.PointInBox(BottomLeft + checkPosition) || box.PointInBox(TopLeft + checkPosition) || box.PointInBox(TopRight + checkPosition) || box.PointInBox(BottomRight + checkPosition));
-            if (check) break;
+            if (box != this)
+            {
+                check = box.PointInBox(checkPosition) || box.PointInBox(dimensions + checkPosition) || box.PointInBox(new Vector2Int(dimensions.x, 0) + checkPosition) || box.PointInBox(new Vector2Int(0, dimensions.y) + checkPosition);
+                if (check) break;
+            }
         }
         return check;
     }
@@ -59,8 +62,11 @@ public class CollisionBox : MonoBehaviour
         bool check = false;
         foreach (CollisionBox box in BoxSystem.boxList)
         {
-            check = (PointInBox(box.BottomLeft + checkPosition) || PointInBox(box.TopLeft + checkPosition) || PointInBox(box.TopRight + checkPosition) || PointInBox(box.BottomRight + checkPosition));
-            if (check) return box;
+            if (box != this)
+            {
+                check = box.PointInBox(checkPosition) || box.PointInBox(dimensions + checkPosition) || box.PointInBox(new Vector2Int(dimensions.x, 0) + checkPosition) || box.PointInBox(new Vector2Int(0, dimensions.y) + checkPosition);
+                if (check) return box;
+            }
         }
         return null;
     }
@@ -68,7 +74,7 @@ public class CollisionBox : MonoBehaviour
     {
         transform.position = new Vector3Int(lockedPosition.x, lockedPosition.y);
         transform.localScale = lockedScale;
-        Debug.DrawLine(new Vector3(lockedPosition.x, lockedPosition.y), new Vector3(TopRight.x, TopRight.y), Color.red);
+        //Debug.DrawLine(new Vector3(lockedPosition.x, lockedPosition.y), new Vector3(TopRight.x, TopRight.y), Color.red);
     }
     void Start()
     {

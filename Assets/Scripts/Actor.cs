@@ -11,6 +11,7 @@ public class Actor : Actorsolid
     public CollisionAction squishAction;
 
     public override bool IsSolid() { return false; }
+
     void Start()
     {
         squishAction = Squish;
@@ -22,7 +23,8 @@ public class Actor : Actorsolid
     {
         Func<CollisionBox, bool> qualifier = (box) => 
         {
-            bool isSolid = box.GetComponent("Solid") != null;
+            Solid solid = box.GetComponent<Solid>();
+            bool isSolid = (solid != null) && (solid.collidable==true);
             return isSolid;
         };
         return box.PlaceMeeting(x_check, y_check, qualifier);
@@ -37,6 +39,12 @@ public class Actor : Actorsolid
     {
         //die or something
     }
+
+    public bool IsRiding(Solid solid)
+    {
+        return box.InstancePlace(X, Y - 1).GetComponent<Solid>() == solid;
+    }
+
     float xRemainder = 0f;
     float yRemainder = 0f;
     public void MoveX(float distance, CollisionAction action)
