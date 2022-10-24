@@ -29,6 +29,7 @@ public class InputBuffering : MonoBehaviour
     {
         foreach (var axis in bufferMap)
         {
+            axis.value = Input.GetAxisRaw(axis.axisName);
             if (Input.GetAxisRaw(axis.axisName) != 0)
             {
                 if (axis.releasedTime > 0f)
@@ -70,6 +71,7 @@ public class InputBuffer
         buffer.time = time;
         buffer.releasedTime = releasedTime;
         buffer.state = state;
+        buffer.value = value;
     }
 
     public void Reset()
@@ -77,8 +79,10 @@ public class InputBuffer
         time = 0f;
         releasedTime = 0f;
         state = BufferStates.NotPressed;
+        value = 0f;
     }
 
+    public float value = 0f;
     public float decay;
     public string axisName;
     public float time = 0f;

@@ -32,7 +32,7 @@ public class Solid : Actorsolid
                 if (actor.IsRiding(this)) riderList.Add(actor);
             }
 
-            collidable = false;
+            //collidable = false;
         }
     }
 }

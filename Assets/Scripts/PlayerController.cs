@@ -8,18 +8,26 @@ public class PlayerController : MonoBehaviour
     public Actor actor;
     public CollisionBox box;
 
-    float speed = 3f;
+    int startX = 0;
+    int startY = 0;
+
     float jump = 3f;
     float jumpHold = 0.2f;
     int jumpHoldTime = 6;
     float jumpPeakGravityReducer = 0.7f;
     float jumpGravityThreshold = 0.1f;
+
     int hangTime = 20;
+    float prePoundSlow = 0.9f;
+    float poundImpulse = 5f;
+
     float gravity = 0.2f;
-    float max_velocity_x = 5f;
+    float max_velocity_x = 6f;
     float stoppingBonus = 0.7f;
-    float velocity_x = 0;
-    float velocity_y = 0;
+    float speed = 3f;
+
+    public float velocity_x = 0;
+    public float velocity_y = 0;
     float drag = 0.8f;
 
     private Actor.CollisionAction resetX;
@@ -29,9 +37,12 @@ public class PlayerController : MonoBehaviour
 
     private InputBuffering inputBuffer;
 
+    public AudioSource jumpSound;
+    public AudioSource landSound;
+
     void Start()
     {
-        stateMachine = new StateMach(State_Run, State_Jump);
+        stateMachine = new StateMach(State_Run, State_Jump, State_Pound, State_Die);
         resetX = () => { velocity_x = 0; };
         resetY = () => { velocity_y = 0; };
 
@@ -56,56 +67,111 @@ public class PlayerController : MonoBehaviour
     {
         float horizontal = Input.GetAxis("Horizontal");
         InputBuffer verticalInput = inputBuffer.GetInputBuffer("Vertical");
-        bool vertical = verticalInput.state==BufferStates.Down || (verticalInput.time < verticalInput.decay);
+        bool vertical = verticalInput.value > 0f && (verticalInput.state==BufferStates.Down || (verticalInput.time!=0 && verticalInput.time < verticalInput.decay));
+
         if (horizontal == 0f) velocity_x *= stoppingBonus;
         velocity_x = Mathf.Clamp(-1 * max_velocity_x, velocity_x + horizontal * speed, max_velocity_x);
-        if (actor.IsStanding() && vertical) stateMachine.ChangeState(1, 0);
 
-        velocity_y -= gravity;
+        if (actor.IsStanding() && vertical)
+        {
+            jumpSound.Play();
+            stateMachine.ChangeState(1, 0);
+        }
+        else if (!actor.IsStanding()) stateMachine.ChangeState(1, 1);
+        
 
         ApplyVelocityAndDrag();
     }
     void State_Jump()
     {
         float horizontal = Input.GetAxis("Horizontal");
-        velocity_x = Mathf.Clamp(-1 * max_velocity_x, velocity_x + horizontal, max_velocity_x);
-        
-        switch (stateMachine.subState)
+        velocity_x = Mathf.Clamp(-1 * max_velocity_x, velocity_x + horizontal * speed, max_velocity_x);
+        InputBuffer verticalInput = inputBuffer.GetInputBuffer("Vertical");
+
+        if(verticalInput.value < 0f)
         {
-            case 0:
-                if (inputBuffer.GetInputBuffer("Vertical").state == BufferStates.Held && stateMachine.stateTimer < jumpHoldTime)
-                {
-                    Debug.Log(stateMachine.stateTimer);
-                    if (stateMachine.stateTimer == 0) velocity_y += jump;
-                    else velocity_y += jumpHold;
-                }
-                else
-                {
-                    stateMachine.ChangeState(1, 1);
-                    velocity_y -= gravity;
-                }
-                break;
-
-            case 1:
-                if (!(velocity_y > jumpGravityThreshold)) velocity_y -= jumpPeakGravityReducer * gravity;
-                else velocity_y -= gravity;
-                if (velocity_y < jumpGravityThreshold) stateMachine.ChangeState(1, 2);
-                break;
-
-            case 2:
-                velocity_y -= gravity;
-                break;
+            bool pound = verticalInput.state == BufferStates.Down || (verticalInput.time != 0 && verticalInput.time < verticalInput.decay);
+            if (pound)
+            {
+                stateMachine.ChangeState(2, 0);
+            }
         }
+        else
+        {
+            switch (stateMachine.subState)
+            {
+                case 0:
+                    if (inputBuffer.GetInputBuffer("Vertical").state == BufferStates.Held && stateMachine.stateTimer < jumpHoldTime)
+                    {
+                        if (stateMachine.stateTimer == 0) velocity_y += jump;
+                        else velocity_y += jumpHold;
+                    }
+                    else
+                    {
+                        stateMachine.ChangeState(1, 1);
+                        velocity_y -= gravity;
+                    }
+                    break;
+
+                case 1:
+                    if (!(velocity_y > jumpGravityThreshold)) velocity_y -= jumpPeakGravityReducer * gravity;
+                    else velocity_y -= gravity;
+                    if (velocity_y < jumpGravityThreshold) stateMachine.ChangeState(1, 2);
+                    break;
+
+                case 2:
+                    velocity_y -= gravity;
+                    break;
+            }
+        }
+
         ApplyVelocityAndDrag();
         if (actor.IsStanding()) stateMachine.ChangeState(0);
     }
     void State_Pound()
     {
-
+        switch (stateMachine.subState)
+        {
+            case 0:
+                velocity_y *= prePoundSlow;
+                if (stateMachine.stateTimer > hangTime)
+                {
+                    velocity_y -= poundImpulse;
+                    velocity_x = 0;
+                    stateMachine.ChangeState(2, 1);
+                }
+                break;
+            case 1:
+                velocity_y -= gravity;
+                Solid hit = box.InstancePlace(actor.X, actor.Y + Mathf.RoundToInt(velocity_y)).GetComponent<Solid>();
+                if (hit != null)
+                {
+                    hit.collidable = false;
+                }
+                if(actor.CollideCheck(actor.X, actor.Y + Mathf.RoundToInt(velocity_y)))
+                {
+                    stateMachine.ChangeState(2, 2);
+                    landSound.Play();
+                    Camera.main.GetComponent<CameraFollow>().Screenshake(20);
+                }
+                break;
+            case 2:
+                velocity_y = 0;
+                //do ground pound
+                if (stateMachine.stateTimer > hangTime) stateMachine.ChangeState(0);
+                break;
+        }
+        ApplyVelocityAndDrag();
     }
     void State_Die()
     {
+        actor.box.lockedPosition.x = startX;
+        actor.box.lockedPosition.y = startY;
 
+        velocity_x = 0f;
+        velocity_y = 0f;
+
+        if (stateMachine.stateTimer > 30) stateMachine.ChangeState(0);
     }
     #endregion
 }

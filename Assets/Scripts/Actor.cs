@@ -19,7 +19,7 @@ public class Actor : Actorsolid
         Actortracker.actorList.Add(this);
     }
 
-    bool CollideCheck(int x_check, int y_check)
+    public bool CollideCheck(int x_check, int y_check)
     {
         Func<CollisionBox, bool> qualifier = (box) => 
         {
