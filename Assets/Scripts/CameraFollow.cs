@@ -9,13 +9,14 @@ public class CameraFollow : MonoBehaviour
     float pivotY;
     float smoothing = 0.9f;
 
-    float shakeIntensity = 25f;
+    float shakeIntensity = 5f;
     float screenshakeleft = 0f;
 
+    public int offset = 0;
     void Update()
     {
         pivotX = target.transform.position.x;
-        pivotY = target.transform.position.y + 64;
+        pivotY = target.transform.position.y - offset;
 
         transform.position = new Vector3(Mathf.Lerp(transform.position.x, pivotX, smoothing), Mathf.Lerp(transform.position.y, pivotY, smoothing), transform.position.z);
     }
@@ -26,14 +27,16 @@ public class CameraFollow : MonoBehaviour
     }
     IEnumerator DoScreenshake()
     {
-        if (screenshakeleft > 0)
+        float shakeToStart = screenshakeleft;
+        while(screenshakeleft > 0)
         {
-            Debug.Log("s");
-            transform.position = new Vector3(transform.position.x + Random.Range(-1f, 1f) * shakeIntensity, transform.position.y + Random.Range(-1f, 1f) * shakeIntensity, transform.position.z);
+            float ratio = screenshakeleft / shakeToStart;
+            transform.position = new Vector3(transform.position.x + Random.Range(-1f, 1f) * shakeIntensity * ratio, transform.position.y + Random.Range(-1f, 1f) * shakeIntensity * ratio, transform.position.z);
+            screenshakeleft -= Time.deltaTime;
+            yield return null;
         }
-        else StopCoroutine(DoScreenshake());
+        StopCoroutine(DoScreenshake());
 
-        screenshakeleft -= Time.deltaTime/60f;
-        yield return null;
+        
     }
 }

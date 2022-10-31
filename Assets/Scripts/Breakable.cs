@@ -6,6 +6,7 @@ public class Breakable : MonoBehaviour
 {
     public void Break()
     {
+        if(TryGetComponent(out Solid solid)) solid.collidable = false;
         Destroy(gameObject);
     }
 }

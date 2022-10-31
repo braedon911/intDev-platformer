@@ -34,6 +34,10 @@ public class CollisionBox : MonoBehaviour
         bool check = false;
         foreach (CollisionBox box in BoxSystem.boxList)
         {
+            if (box == null) {
+                BoxSystem.boxList.Remove(box);
+                break;
+            }
             if (box != this) {
                 check = box.PointInBox(checkPosition) || box.PointInBox(dimensions + checkPosition) || box.PointInBox(new Vector2Int(dimensions.x, 0) + checkPosition) || box.PointInBox(new Vector2Int(0, dimensions.y) + checkPosition);
 
@@ -48,6 +52,11 @@ public class CollisionBox : MonoBehaviour
         bool check = false;
         foreach (CollisionBox box in BoxSystem.boxList)
         {
+            if (box == null)
+            {
+                BoxSystem.boxList.Remove(box);
+                break;
+            }
             if (box != this)
             {
                 check = box.PointInBox(checkPosition) || box.PointInBox(dimensions + checkPosition) || box.PointInBox(new Vector2Int(dimensions.x, 0) + checkPosition) || box.PointInBox(new Vector2Int(0, dimensions.y) + checkPosition);
@@ -62,6 +71,11 @@ public class CollisionBox : MonoBehaviour
         bool check = false;
         foreach (CollisionBox box in BoxSystem.boxList)
         {
+            if (box == null)
+            {
+                BoxSystem.boxList.Remove(box);
+                break;
+            }
             if (box != this)
             {
                 check = box.PointInBox(checkPosition) || box.PointInBox(dimensions + checkPosition) || box.PointInBox(new Vector2Int(dimensions.x, 0) + checkPosition) || box.PointInBox(new Vector2Int(0, dimensions.y) + checkPosition);

@@ -17,8 +17,8 @@ public class PlayerController : MonoBehaviour
     float jumpPeakGravityReducer = 0.7f;
     float jumpGravityThreshold = 0.1f;
 
-    int hangTime = 20;
-    float prePoundSlow = 0.9f;
+    int hangTime = 15;
+    float prePoundSlow = 0.6f;
     float poundImpulse = 5f;
 
     float gravity = 0.2f;
@@ -143,22 +143,24 @@ public class PlayerController : MonoBehaviour
                 break;
             case 1:
                 velocity_y -= gravity;
-                Solid hit = box.InstancePlace(actor.X, actor.Y + Mathf.RoundToInt(velocity_y)).GetComponent<Solid>();
-                if (hit != null)
+                Breakable hit;
+                hit = (Breakable)(box.InstancePlace(actor.X, actor.Y + Mathf.RoundToInt(velocity_y))?.GetComponent("Breakable"));
+                if (hit!=null)
                 {
-                    hit.collidable = false;
+                    landSound.Play();
+                    hit.Break();
                 }
-                if(actor.CollideCheck(actor.X, actor.Y + Mathf.RoundToInt(velocity_y)))
+                else if(actor.CollideCheck(actor.X, actor.Y + Mathf.RoundToInt(velocity_y)))
                 {
                     stateMachine.ChangeState(2, 2);
                     landSound.Play();
-                    Camera.main.GetComponent<CameraFollow>().Screenshake(20);
+                    Camera.main.GetComponent<CameraFollow>().Screenshake(0.4f);
                 }
                 break;
             case 2:
                 velocity_y = 0;
                 //do ground pound
-                if (stateMachine.stateTimer > hangTime) stateMachine.ChangeState(0);
+                if (stateMachine.stateTimer > 6) stateMachine.ChangeState(0);
                 break;
         }
         ApplyVelocityAndDrag();
