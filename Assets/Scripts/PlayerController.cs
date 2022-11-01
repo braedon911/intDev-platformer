@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
     int jumpHoldTime = 6;
     float jumpPeakGravityReducer = 0.7f;
     float jumpGravityThreshold = 0.1f;
+    int coyoteFrames = 3;
 
     int hangTime = 15;
     float prePoundSlow = 0.6f;
@@ -48,11 +49,17 @@ public class PlayerController : MonoBehaviour
 
         inputBuffer = GetComponent<InputBuffering>();
         inputBuffer.AddAxis("Vertical", .8f);
+
+        actor.squishAction = () =>
+        {
+            stateMachine.ChangeState(3);
+        };
     }
 
     void FixedUpdate()
     {
         stateMachine.Execute();
+        if (actor.box.PlaceMeeting(actor.X, actor.Y, (box) => { return box.GetComponent<KillZone>(); })) stateMachine.ChangeState(3);
     }
 
     void ApplyVelocityAndDrag() {
@@ -77,7 +84,11 @@ public class PlayerController : MonoBehaviour
             jumpSound.Play();
             stateMachine.ChangeState(1, 0);
         }
-        else if (!actor.IsStanding()) stateMachine.ChangeState(1, 1);
+        else if (!actor.IsStanding())
+        {
+            stateMachine.ChangeState(1, 3);
+        }
+        
         
 
         ApplyVelocityAndDrag();
@@ -121,6 +132,13 @@ public class PlayerController : MonoBehaviour
 
                 case 2:
                     velocity_y -= gravity;
+                    break;
+                case 3:
+                    bool vertical = verticalInput.value > 0f && (verticalInput.state == BufferStates.Down || (verticalInput.time != 0 && verticalInput.time < verticalInput.decay));
+                    if (stateMachine.stateTimer < coyoteFrames && vertical) stateMachine.ChangeState(1,0);
+                    if (!(velocity_y > jumpGravityThreshold)) velocity_y -= jumpPeakGravityReducer * gravity;
+                    else velocity_y -= gravity;
+                    if (velocity_y < jumpGravityThreshold) stateMachine.ChangeState(1, 2);
                     break;
             }
         }

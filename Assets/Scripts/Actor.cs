@@ -42,7 +42,9 @@ public class Actor : Actorsolid
 
     public bool IsRiding(Solid solid)
     {
-        return box.InstancePlace(X, Y - 1).GetComponent<Solid>() == solid;
+        bool hitSolid = false;
+        hitSolid = box.InstancePlace(X, Y - 1)?.GetComponent<Solid>() == solid;
+        return hitSolid;
     }
 
     float xRemainder = 0f;
